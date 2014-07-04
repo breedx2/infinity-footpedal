@@ -23,7 +23,7 @@ void *reader_thread(void *ptr){
 
 		pedal_buttons buttons;
 
-		post("before reading with timeout...");
+		:/post("before reading with timeout...");
 		int rc = pedal_read_timeout(&buttons, 250);
 		if(rc == -1){
 			perror("Error reading pedal.\n");
@@ -36,6 +36,7 @@ void *reader_thread(void *ptr){
 		for(int i=0; i < thread_info.listenerCt; i++){
 			t_infinity_pedal *pPedal = thread_info.listeners[i];
 			output_buttons(pPedal, buttons, last_buttons);
+			memcpy(&last_buttons, &buttons, sizeof(last_buttons));
 		}
 	}
 
