@@ -19,24 +19,40 @@ void *reader_thread(void *ptr){
 
 	pedal_buttons last_buttons;
 
-	while(true){
+	while(keep_running()){
+
 		pedal_buttons buttons;
 
-		int pedalFd = pedal_fileno();
-		int readFd = thread_info.readFd;
-
-		fd_set rfds;
-		FD_ZERO(&rfds);
-		FD_SET(pedalFd, &rfds);
-		FD_SET(readFd, &rfds);
-
-		int maxFd = (pedalFd > readFd) ? pedalFd : readFd;
-		int rc = select(maxFd + 1, &rfds, NULL, NULL, NULL/*forever*/);
-		if(rc < 1){
-			perror("Infinity thread select failed.");
+		post("before reading with timeout...");
+		int rc = pedal_read_timeout(&buttons, 250);
+		if(rc == -1){
+			perror("Error reading pedal.\n");
 			break;
 		}
-		if(FD_ISSET(readFd, &rfds)){
+		if(rc == 0){
+			continue;
+		}
+
+		for(int i=0; i < thread_info.listenerCt; i++){
+			t_infinity_pedal *pPedal = thread_info.listeners[i];
+			output_buttons(pPedal, buttons, last_buttons);
+		}
+
+		//int pedalFd = pedal_fileno();
+		//int readFd = thread_info.readFd;
+
+		//fd_set rfds;
+		//FD_ZERO(&rfds);
+		//FD_SET(pedalFd, &rfds);
+		//FD_SET(readFd, &rfds);
+
+	//	int maxFd = (pedalFd > readFd) ? pedalFd : readFd;
+	//	int rc = select(maxFd + 1, &rfds, NULL, NULL, NULL/*forever*/);
+	//	if(rc < 1){
+	//		perror("Infinity thread select failed.");
+	//		break;
+	//	}
+		/*if(FD_ISSET(readFd, &rfds)){
 			break;
 		}
 		if(FD_ISSET(pedalFd, &rfds)){
@@ -49,10 +65,27 @@ void *reader_thread(void *ptr){
 			pthread_mutex_unlock(&thread_info.mutex);
 			memcpy(&last_buttons, &buttons, sizeof(last_buttons));
 		}
+		*/
 	}
 
 	post("Infinity pedal thread is terminating");
 	return NULL;
+}
+
+bool keep_running(){
+	int readFd = thread_info.readFd;
+	fd_set rfds;
+	FD_ZERO(&rfds);
+	FD_SET(readFd, &rfds);
+	struct timeval tv;
+	tv.tv_sec = 0;
+	tv.tv_usec = 0;
+	int rc = select(readFd + 1, &rfds, NULL, NULL, &tv);
+	if(rc < 0){
+		perror("Infinity thread select failed.");
+		return false;
+	}
+	return (rc == 0) || !FD_ISSET(readFd, &rfds);
 }
 
 void output_buttons(t_infinity_pedal *pPedal, pedal_buttons buttons, pedal_buttons last_buttons){
@@ -68,7 +101,7 @@ void output_buttons(t_infinity_pedal *pPedal, pedal_buttons buttons, pedal_butto
 }
 
 // only called from Pd thread
-void *infinity_pedal_new(t_symbol *pDevice){
+void *infinity_pedal_new(){
 	t_infinity_pedal *pPedal = (t_infinity_pedal*)pd_new(infinity_pedal_class);
 	pPedal->pLeft = outlet_new(&(pPedal->pedal_object), &s_float);
 	pPedal->pMiddle = outlet_new(&(pPedal->pedal_object), &s_float);
@@ -83,8 +116,8 @@ void *infinity_pedal_new(t_symbol *pDevice){
 
 	//ASSUMPTION: listenerCt is only modified in this thread
 	if(thread_info.listenerCt == 0){
-		pthread_mutex_init(&thread_info.mutex, NULL);
-		open_pedal_and_start_thread(pDevice->s_name);
+		//pthread_mutex_init(&thread_info.mutex, NULL);
+		open_pedal_and_start_thread();
 	}
 	add_pedal_to_infos(pPedal);	//register this instance as a listener
 	
@@ -93,7 +126,7 @@ void *infinity_pedal_new(t_symbol *pDevice){
 
 void add_pedal_to_infos(t_infinity_pedal *pPedal){
 
-	pthread_mutex_lock(&thread_info.mutex);
+	//pthread_mutex_lock(&thread_info.mutex);
 
 	thread_info.listenerCt++;
 	int newSize = thread_info.listenerCt * (sizeof(t_infinity_pedal*));
@@ -103,12 +136,12 @@ void add_pedal_to_infos(t_infinity_pedal *pPedal){
 	sprintf(buff, "infinity_pedal instance added (%d total)", thread_info.listenerCt);
 	post(buff);
 
-	pthread_mutex_unlock(&thread_info.mutex);
+	//pthread_mutex_unlock(&thread_info.mutex);
 }
 
-bool open_pedal_and_start_thread(char *device){
+bool open_pedal_and_start_thread(){
 	post("Attempting to open infinity pedal...");
-	if(!pedal_open(device)){
+	if(!pedal_open()){
 		perror("Failed to open infinity pedal device.");
 		post("Failed to open infinity pedal device.");
 		return false;
@@ -133,14 +166,14 @@ void infinity_pedal_free(t_infinity_pedal *pPedal){
 		write(thread_info.writeFd, &x, 1);
 		pthread_join(thread, NULL);
 		close(thread_info.writeFd);
-		pthread_mutex_destroy(&thread_info.mutex);
+		//pthread_mutex_destroy(&thread_info.mutex);
 		post("Infinity pedal done. Buh-bye.");
 	}
 }
 
 void remove_pedal_from_infos(t_infinity_pedal *pPedal){
 
-	pthread_mutex_lock(&thread_info.mutex);
+	//pthread_mutex_lock(&thread_info.mutex);
 
 	thread_info.listenerCt--;
 	t_infinity_pedal **pNew = NULL;
@@ -159,7 +192,7 @@ void remove_pedal_from_infos(t_infinity_pedal *pPedal){
 	free(thread_info.listeners);
 	thread_info.listeners = pNew;
 
-	pthread_mutex_unlock(&thread_info.mutex);
+	//pthread_mutex_unlock(&thread_info.mutex);
 }
 
 void infinity_pedal_setup(){

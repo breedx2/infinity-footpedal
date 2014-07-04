@@ -11,8 +11,8 @@ typedef struct _pedal_buttons {
 } pedal_buttons;
 
 bool pedal_open();
-bool pedal_read(pedal_buttons *pButtons);
-int pedal_fileno();
+int pedal_read(pedal_buttons *pButtons);
+int pedal_read_timeout(pedal_buttons *pButtons, int millis);
 void pedal_close();
 
 #endif

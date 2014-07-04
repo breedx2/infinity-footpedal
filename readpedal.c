@@ -13,7 +13,7 @@ int main(int argc, char **argv){
 
 	while(1){
 		pedal_buttons buttons;
-		if(!pedal_read(&buttons)){
+		if(pedal_read(&buttons) != 1){
 			printf("Error reading pedal.\n");
 			break;
 		}
