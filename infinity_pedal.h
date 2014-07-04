@@ -16,6 +16,7 @@ typedef struct _thread_info {
 	int readFd;
 	int writeFd;
 	int listenerCt;
+	pthread_mutex_t mutex;
 	t_infinity_pedal **listeners;
 
 } t_thread_info;
