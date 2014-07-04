@@ -3,9 +3,6 @@ CC = gcc
 LD = ld
 INCLUDES = -I/usr/include -I/usr/local/include/
 CFLAGS = -Wall -fPIC $(INCLUDES) -std=gnu99 
-#LDFLAGS = -lstdc++ -lc -lm -export-dynamic -shared
-#LDFLAGS = -lm -export-dynamic -shared -lhidapi -llibhidapi-hidraw
-#HIDAPI = hidapi-hidraw
 HIDAPI = hidapi-libusb
 
 LDFLAGS = -lm -export-dynamic -shared -l$(HIDAPI)
