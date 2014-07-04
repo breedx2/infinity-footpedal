@@ -3,11 +3,13 @@
 #include "pedal.h"
 #include <hidapi/hidapi.h>
 
+const unsigned short PEDAL_VENDOR_ID = 0x05f3;
+const unsigned short PEDAL_PRODUCT_ID = 0x00ff;
+
 hid_device* device = NULL;
 
 bool pedal_open(const char *device_path) {
-	//device = hid_open_path(device_path);
-	device = hid_open(0x05f3, 0x00ff, NULL);
+	device = hid_open(PEDAL_VENDOR_ID, PEDAL_PRODUCT_ID, NULL);
 	return device != NULL;
 }
 

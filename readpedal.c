@@ -4,15 +4,11 @@
 
 int main(int argc, char **argv){
 
-	if(argc < 2){
-		printf("Usage: %s <device>\n", argv[0]);
-		return 1;
-	}
-
-	if(!pedal_open(argv[1])){
+	if(!pedal_open()){
 		printf("Error opening file");
 		return 1;
 	}
+	printf("Pedal opened successfully.\n");
 	printf("Listening to pedal.  Stomp some buttons...\n");
 
 	while(1){

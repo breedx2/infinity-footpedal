@@ -10,7 +10,7 @@ typedef struct _pedal_buttons {
 	unsigned char right;
 } pedal_buttons;
 
-bool pedal_open(const char *device_path);
+bool pedal_open();
 bool pedal_read(pedal_buttons *pButtons);
 int pedal_fileno();
 void pedal_close();
