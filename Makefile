@@ -1,15 +1,19 @@
 
 CC = gcc
 LD = ld
-INCLUDES = -I/usr/local/include/
+INCLUDES = -I/usr/include -I/usr/local/include/
 CFLAGS = -Wall -fPIC $(INCLUDES) -std=gnu99 
 #LDFLAGS = -lstdc++ -lc -lm -export-dynamic -shared
-LDFLAGS = -lm -export-dynamic -shared
+#LDFLAGS = -lm -export-dynamic -shared -lhidapi -llibhidapi-hidraw
+#HIDAPI = hidapi-hidraw
+HIDAPI = hidapi-libusb
+
+LDFLAGS = -lm -export-dynamic -shared -l$(HIDAPI)
 
 all: readpedal infinity_pedal.pd_linux
 
 readpedal: readpedal.c pedal.o
-	$(CC) $(CFLAGS) -o $@ $< pedal.o
+	$(CC) $(CFLAGS) -l$(HIDAPI) -o $@ $< pedal.o
 
 infinity_pedal.pd_linux: infinity_pedal.o pedal.o
 	$(LD) $(LDFLAGS) -o $@ infinity_pedal.o pedal.o
