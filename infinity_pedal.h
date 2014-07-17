@@ -15,14 +15,14 @@ typedef struct _infinity_pedal {
 typedef struct _thread_info {
 	int readFd;
 	int writeFd;
-
 	int listenerCt;
 	pthread_mutex_t mutex;
 	t_infinity_pedal **listeners;
 
 } t_thread_info;
 
-bool open_pedal_and_start_thread(char *device_path);
+bool keep_running();
+bool open_pedal_and_start_thread();
 void add_pedal_to_infos(t_infinity_pedal *pPedal);
 void remove_pedal_from_infos(t_infinity_pedal *pPedal);
 void output_buttons(t_infinity_pedal *pPedal, pedal_buttons buttons, pedal_buttons last_buttons);
