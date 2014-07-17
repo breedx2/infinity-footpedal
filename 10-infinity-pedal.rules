@@ -1,0 +1,1 @@
+SUBSYSTEM=="usb", ATTRS{idVendor}=="05f3", ATTRS{idProduct}=="00ff", GROUP="plugdev", MODE="0664", SYMLINK+="infinity-footpedal"
